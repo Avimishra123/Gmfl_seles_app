@@ -1,0 +1,109 @@
+{
+  "buildFiles": [
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/@react-native-clipboard/clipboard/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/@react-native-firebase/app/android/src/reactnative/java/io/invertase/firebase/app/generated/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/@react-native-firebase/messaging/android/src/main/java/io/invertase/firebase/messaging/generated/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/react-native-gesture-handler/android/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/ios/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/.cxx/Debug/3l5f654p/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/ios/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/.cxx/Debug/3l5f654p/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "react_codegen_rnclipboard::@6385240493dfcaf22ab7": {
+      "artifactName": "react_codegen_rnclipboard",
+      "abi": "x86",
+      "runtimeFiles": []
+    },
+    "react_codegen_RNFBMessagingTurboModules::@23361e4831c0e3136ef6": {
+      "artifactName": "react_codegen_RNFBMessagingTurboModules",
+      "abi": "x86",
+      "runtimeFiles": []
+    },
+    "react_codegen_safeareacontext::@7984cd80db47aa7b952a": {
+      "artifactName": "react_codegen_safeareacontext",
+      "abi": "x86",
+      "output": "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_safeareacontext.so",
+      "runtimeFiles": [
+        "/Users/ios/.gradle/caches/9.4.1/transforms/7a9797ce9c56d73f66a7253f989bfd68/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so"
+      ]
+    },
+    "react_codegen_RNFBAppTurboModules::@a0d44c1163aba7af3ea1": {
+      "artifactName": "react_codegen_RNFBAppTurboModules",
+      "abi": "x86",
+      "runtimeFiles": []
+    },
+    "react_codegen_rngesturehandler_codegen::@39f233abcd2c728bc6ec": {
+      "artifactName": "react_codegen_rngesturehandler_codegen",
+      "abi": "x86",
+      "output": "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_rngesturehandler_codegen.so",
+      "runtimeFiles": [
+        "/Users/ios/.gradle/caches/9.4.1/transforms/7a9797ce9c56d73f66a7253f989bfd68/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so"
+      ]
+    },
+    "react_codegen_rndocumentpickerCGen::@aac1846a245ca418eb66": {
+      "artifactName": "react_codegen_rndocumentpickerCGen",
+      "abi": "x86",
+      "runtimeFiles": []
+    },
+    "react_codegen_rnscreens::@25bcbd507e98d3a854ad": {
+      "artifactName": "react_codegen_rnscreens",
+      "abi": "x86",
+      "output": "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_rnscreens.so",
+      "runtimeFiles": [
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/7a9797ce9c56d73f66a7253f989bfd68/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so"
+      ]
+    },
+    "appmodules::@6890427a1f51a3e7e1df": {
+      "artifactName": "appmodules",
+      "abi": "x86",
+      "output": "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libappmodules.so",
+      "runtimeFiles": [
+        "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_rngesturehandler_codegen.so",
+        "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_safeareacontext.so",
+        "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_rnscreens.so",
+        "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_rnsvg.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/7a9797ce9c56d73f66a7253f989bfd68/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so"
+      ]
+    },
+    "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65": {
+      "artifactName": "react_codegen_rnsvg",
+      "abi": "x86",
+      "output": "/Users/ios/Downloads/GMFLSalesperson_App_Source/android/app/build/intermediates/cxx/Debug/3l5f654p/obj/x86/libreact_codegen_rnsvg.so",
+      "runtimeFiles": [
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/4f3f34b17b2cd2f26432be0c7a05098d/transformed/react-android-0.87.1-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/Users/ios/.gradle/caches/9.4.1/transforms/7a9797ce9c56d73f66a7253f989bfd68/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so"
+      ]
+    },
+    "react_codegen_AsyncStorageSpec::@15af80695a6281ecf900": {
+      "artifactName": "react_codegen_AsyncStorageSpec",
+      "abi": "x86",
+      "runtimeFiles": []
+    }
+  }
+}

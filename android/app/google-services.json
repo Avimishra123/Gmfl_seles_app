@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "243942048133",
+    "project_id": "gmfl-apps",
+    "storage_bucket": "gmfl-apps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243942048133:android:d14bd5c1806ba1d65004ec",
+        "android_client_info": {
+          "package_name": "com.gmfl.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuuLPkB4JHRg9ag9a490f278Bn7Y8BxTE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243942048133:android:62b683cb7f5428765004ec",
+        "android_client_info": {
+          "package_name": "com.gmfl.salesperson"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuuLPkB4JHRg9ag9a490f278Bn7Y8BxTE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
