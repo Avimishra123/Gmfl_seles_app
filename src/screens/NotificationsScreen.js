@@ -9,20 +9,25 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Card, Shimmer } from '../components/ui';
+import { Shimmer } from '../components/ui';
 import { ApiService } from '../network/ApiService';
 import { useApp } from '../store';
-import { colors, type } from '../theme';
+import { colors } from '../theme';
 import {
   BellIcon,
   ChevronLeftIcon,
-  ChevronRightIcon,
-  LeadsIcon,
-  FileTextIcon,
-  CheckCircleIcon,
-  AlertCircleIcon,
   CheckIcon,
 } from '../components/Icons';
+import Svg, { Path, Circle } from 'react-native-svg';
+
+function ClockIcon({ size = 14, color = '#64748B' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <Circle cx="12" cy="12" r="10" />
+      <Path d="M12 6v6l4 2" />
+    </Svg>
+  );
+}
 
 function formatNotificationTime(createdAt) {
   if (!createdAt) return '';
@@ -57,58 +62,6 @@ function formatNotificationTime(createdAt) {
   });
 }
 
-function getTypeConfig(type) {
-  const t = String(type || '').toUpperCase();
-  if (t.includes('LEAD')) {
-    return {
-      icon: <LeadsIcon color="#0284C7" />,
-      bg: '#E0F2FE',
-      borderColor: '#BAE6FD',
-      badgeBg: '#E0F2FE',
-      badgeFg: '#0369A1',
-      badgeText: 'Lead',
-    };
-  }
-  if (t.includes('DISBURSE') || t.includes('CONVERT') || t.includes('APPROV')) {
-    return {
-      icon: <CheckCircleIcon color="#059669" size={20} />,
-      bg: '#DCFCE7',
-      borderColor: '#86EFAC',
-      badgeBg: '#DCFCE7',
-      badgeFg: '#047857',
-      badgeText: 'Approved',
-    };
-  }
-  if (t.includes('REJECT') || t.includes('DROP')) {
-    return {
-      icon: <AlertCircleIcon color="#DC2626" size={20} />,
-      bg: '#FEE2E2',
-      borderColor: '#FCA5A5',
-      badgeBg: '#FEE2E2',
-      badgeFg: '#B91C1C',
-      badgeText: 'Alert',
-    };
-  }
-  if (t.includes('DOC') || t.includes('APPLICATION')) {
-    return {
-      icon: <FileTextIcon color="#D97706" size={20} />,
-      bg: '#FEF3C7',
-      borderColor: '#FDE68A',
-      badgeBg: '#FEF3C7',
-      badgeFg: '#B45309',
-      badgeText: 'Application',
-    };
-  }
-  return {
-    icon: <BellIcon color="#475569" size={20} />,
-    bg: '#F1F5F9',
-    borderColor: '#E2E8F0',
-    badgeBg: '#F1F5F9',
-    badgeFg: '#475569',
-    badgeText: 'Notice',
-  };
-}
-
 function NotificationSkeletonList() {
   return (
     <View style={styles.listContainer}>
@@ -116,13 +69,10 @@ function NotificationSkeletonList() {
         <View key={i} style={styles.skeletonCard}>
           <Shimmer style={styles.skeletonIcon} />
           <View style={styles.skeletonContent}>
-            <View style={styles.skeletonRow}>
-              <Shimmer style={{ width: 60, height: 16, borderRadius: 6 }} />
-              <Shimmer style={{ width: 50, height: 12, borderRadius: 4 }} />
-            </View>
-            <Shimmer style={{ width: '75%', height: 16, borderRadius: 6, marginVertical: 6 }} />
+            <Shimmer style={{ width: '60%', height: 16, borderRadius: 6, marginBottom: 8 }} />
             <Shimmer style={{ width: '95%', height: 12, borderRadius: 4, marginBottom: 4 }} />
-            <Shimmer style={{ width: '60%', height: 12, borderRadius: 4 }} />
+            <Shimmer style={{ width: '70%', height: 12, borderRadius: 4, marginBottom: 12 }} />
+            <Shimmer style={{ width: '30%', height: 12, borderRadius: 4 }} />
           </View>
         </View>
       ))}
@@ -135,7 +85,7 @@ export default function NotificationsScreen({ navigation }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'UNREAD'
+  const [activeTab, setActiveTab] = useState('ALL');
   const [markingAll, setMarkingAll] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -145,7 +95,17 @@ export default function NotificationsScreen({ navigation }) {
       const res = await ApiService.getNotifications(token, 1, 50);
       if (res.ok) {
         const data = await res.json();
-        const list = data.data?.notifications || data.data?.data || [];
+        let list = data.data?.notifications || data.data?.data || [];
+        list.sort((a, b) => {
+          const getMs = (dateObj) => {
+            if (!dateObj) return 0;
+            if (typeof dateObj === 'object' && dateObj._seconds) return dateObj._seconds * 1000;
+            if (typeof dateObj === 'number') return dateObj > 1e11 ? dateObj : dateObj * 1000;
+            const d = new Date(dateObj);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+          };
+          return getMs(b.createdAt) - getMs(a.createdAt);
+        });
         setNotifications(list);
       } else {
         showToast('Could not load notifications');
@@ -220,10 +180,7 @@ export default function NotificationsScreen({ navigation }) {
 
   const renderItem = ({ item }) => {
     const isUnread = !item.isRead;
-    const typeConfig = getTypeConfig(item.type);
     const timeFormatted = formatNotificationTime(item.createdAt);
-    const trackingId = item.dataPayload?.trackingId;
-    const hasDestination = Boolean(item.dataPayload?.leadId || item.dataPayload?.applicationId);
 
     return (
       <Pressable
@@ -234,67 +191,24 @@ export default function NotificationsScreen({ navigation }) {
           pressed && styles.cardPressed,
         ]}
       >
-        {/* Left Icon Badge */}
-        <View style={[styles.iconBox, { backgroundColor: typeConfig.bg }]}>
-          {typeConfig.icon}
+        {isUnread && <View style={styles.unreadDotTopRight} />}
+        
+        <View style={[styles.iconBox, isUnread ? styles.iconBoxUnread : styles.iconBoxRead]}>
+          <BellIcon color={isUnread ? "#D97706" : "#64748B"} size={20} />
         </View>
 
-        {/* Content Body */}
         <View style={styles.cardContent}>
-          {/* Header Row: Type Badge + Time + Unread indicator */}
-          <View style={styles.cardMetaRow}>
-            <View style={styles.metaLeft}>
-              <View style={[styles.typeBadge, { backgroundColor: typeConfig.badgeBg }]}>
-                <Text style={[styles.typeBadgeText, { color: typeConfig.badgeFg }]}>
-                  {typeConfig.badgeText}
-                </Text>
-              </View>
-              {trackingId ? (
-                <View style={styles.trackingBadge}>
-                  <Text style={styles.trackingText} numberOfLines={1}>
-                    {trackingId}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-            <View style={styles.metaRight}>
-              {timeFormatted ? <Text style={styles.timeText}>{timeFormatted}</Text> : null}
-              {isUnread && <View style={styles.unreadDot} />}
-            </View>
-          </View>
-
-          {/* Title */}
           <Text style={[styles.cardTitle, isUnread && styles.unreadTitle]} numberOfLines={2}>
             {item.title || 'Notification'}
           </Text>
 
-          {/* Body Message */}
           <Text style={styles.cardBody} numberOfLines={3}>
             {item.body || item.message || ''}
           </Text>
 
-          {/* Bottom Actions Row */}
-          <View style={styles.bottomActionRow}>
-            {hasDestination ? (
-              <View style={styles.linkAction}>
-                <Text style={styles.linkText}>View Details</Text>
-                <ChevronRightIcon size={14} color={colors.teal} strokeWidth={2.5} />
-              </View>
-            ) : <View />}
-
-            {isUnread && (
-              <Pressable
-                hitSlop={8}
-                style={styles.markReadBtn}
-                onPress={(e) => {
-                  e.stopPropagation?.();
-                  markAsRead(item.id || item._id);
-                }}
-              >
-                <CheckIcon size={12} color="#0284C7" strokeWidth={2.5} />
-                <Text style={styles.markReadBtnText}>Mark read</Text>
-              </Pressable>
-            )}
+          <View style={styles.timeRow}>
+            <ClockIcon size={14} color="#94A3B8" />
+            <Text style={styles.timeText}>{timeFormatted}</Text>
           </View>
         </View>
       </Pressable>
@@ -305,21 +219,23 @@ export default function NotificationsScreen({ navigation }) {
     <View style={[styles.screen, { paddingTop: insets.top + 6 }]}>
       {/* Top Header */}
       <View style={styles.topHeader}>
-        <Pressable
-          hitSlop={10}
-          onPress={() => navigation.goBack()}
-          style={({ pressed }) => [styles.backBtn, pressed && styles.pressedOpacity]}
-        >
-          <ChevronLeftIcon size={20} color={colors.navy} strokeWidth={2.5} />
-        </Pressable>
+        <View style={styles.headerLeft}>
+          <Pressable
+            hitSlop={10}
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [styles.backBtn, pressed && styles.pressedOpacity]}
+          >
+            <ChevronLeftIcon size={20} color={colors.navy} strokeWidth={2.5} />
+          </Pressable>
 
-        <View style={styles.titleWrap}>
-          <Text style={styles.screenTitle}>Notifications</Text>
-          {unreadCount > 0 && (
-            <View style={styles.unreadCountPill}>
-              <Text style={styles.unreadCountText}>{unreadCount} new</Text>
-            </View>
-          )}
+          <View style={styles.titleWrap}>
+            <Text style={styles.screenTitle}>Notifications</Text>
+            {unreadCount > 0 && (
+              <View style={styles.redBadge}>
+                <Text style={styles.redBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {unreadCount > 0 ? (
@@ -330,10 +246,10 @@ export default function NotificationsScreen({ navigation }) {
             style={({ pressed }) => [styles.markAllBtn, pressed && styles.pressedOpacity]}
           >
             {markingAll ? (
-              <ActivityIndicator size="small" color={colors.teal} />
+              <ActivityIndicator size="small" color="#C2410C" />
             ) : (
               <>
-                <CheckIcon size={13} color={colors.teal} strokeWidth={2.5} />
+                <CheckIcon size={14} color="#C2410C" strokeWidth={3} />
                 <Text style={styles.markAllText}>Read all</Text>
               </>
             )}
@@ -343,22 +259,22 @@ export default function NotificationsScreen({ navigation }) {
         )}
       </View>
 
-      {/* Tabs: All / Unread */}
+      {/* Tabs */}
       <View style={styles.tabContainer}>
         <Pressable
           onPress={() => setActiveTab('ALL')}
-          style={[styles.tabButton, activeTab === 'ALL' && styles.tabButtonActive]}
+          style={[styles.tabButton, activeTab === 'ALL' ? styles.tabButtonActive : styles.tabButtonInactive]}
         >
-          <Text style={[styles.tabText, activeTab === 'ALL' && styles.tabTextActive]}>
-            All ({notifications.length})
+          <Text style={[styles.tabText, activeTab === 'ALL' ? styles.tabTextActive : styles.tabTextInactive]}>
+            All
           </Text>
         </Pressable>
 
         <Pressable
           onPress={() => setActiveTab('UNREAD')}
-          style={[styles.tabButton, activeTab === 'UNREAD' && styles.tabButtonActive]}
+          style={[styles.tabButton, activeTab === 'UNREAD' ? styles.tabButtonActive : styles.tabButtonInactive]}
         >
-          <Text style={[styles.tabText, activeTab === 'UNREAD' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, activeTab === 'UNREAD' ? styles.tabTextActive : styles.tabTextInactive]}>
             Unread ({unreadCount})
           </Text>
         </Pressable>
@@ -394,8 +310,8 @@ export default function NotificationsScreen({ navigation }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[colors.teal]}
-              tintColor={colors.teal}
+              colors={['#C2410C']}
+              tintColor={'#C2410C'}
             />
           }
           showsVerticalScrollIndicator={false}
@@ -408,23 +324,27 @@ export default function NotificationsScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
   },
   topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F6',
+    paddingVertical: 12,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -434,205 +354,147 @@ const styles = StyleSheet.create({
   titleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   screenTitle: {
     fontFamily: 'DMSans-Bold',
-    fontSize: 18,
-    color: colors.navy,
+    fontSize: 20,
+    color: '#111827',
   },
-  unreadCountPill: {
-    backgroundColor: '#E0F2FE',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+  redBadge: {
+    backgroundColor: '#DC2626',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  unreadCountText: {
+  redBadgeText: {
     fontFamily: 'DMSans-Bold',
-    fontSize: 11,
-    color: '#0284C7',
+    fontSize: 10,
+    color: '#FFFFFF',
   },
   markAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#F0F9FF',
+    borderRadius: 16,
+    backgroundColor: '#FFEDD5',
   },
   markAllText: {
-    fontFamily: 'DMSans-Medium',
+    fontFamily: 'DMSans-Bold',
     fontSize: 12,
-    color: colors.teal,
+    color: '#C2410C',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#EDF2F7',
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    borderRadius: 12,
-    padding: 3,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    gap: 10,
   },
   tabButton: {
-    flex: 1,
+    paddingHorizontal: 18,
     paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   tabButtonActive: {
-    backgroundColor: colors.white,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
+    backgroundColor: '#A33310',
+    borderColor: '#A33310',
+  },
+  tabButtonInactive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
   },
   tabText: {
     fontFamily: 'DMSans-Medium',
-    fontSize: 13,
-    color: '#64748B',
+    fontSize: 14,
   },
   tabTextActive: {
-    fontFamily: 'DMSans-Bold',
-    color: colors.navy,
+    color: '#FFFFFF',
+  },
+  tabTextInactive: {
+    color: '#6B7280',
   },
   listContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    gap: 12,
+    gap: 14,
   },
   card: {
     flexDirection: 'row',
     borderRadius: 16,
-    padding: 14,
+    padding: 16,
     borderWidth: 1,
-    gap: 12,
+    gap: 14,
+    position: 'relative',
+    overflow: 'hidden',
   },
   readCard: {
-    backgroundColor: colors.white,
-    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
   },
   unreadCard: {
-    backgroundColor: '#F6FAFD',
-    borderColor: '#BAE6FD',
-    shadowColor: '#0284C7',
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FED7AA',
   },
   cardPressed: {
     opacity: 0.94,
     transform: [{ scale: 0.995 }],
   },
+  unreadDotTopRight: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#DC2626',
+  },
   iconBox: {
     width: 44,
     height: 44,
-    borderRadius: 13,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconBoxRead: {
+    backgroundColor: '#F3F4F6',
+  },
+  iconBoxUnread: {
+    backgroundColor: '#FFEDD5',
   },
   cardContent: {
     flex: 1,
   },
-  cardMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  metaLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexShrink: 1,
-  },
-  typeBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  typeBadgeText: {
-    fontFamily: 'DMSans-Bold',
-    fontSize: 10,
-    textTransform: 'uppercase',
-  },
-  trackingBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: '#F1F5F9',
-    maxWidth: 130,
-  },
-  trackingText: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: 10,
-    color: '#475569',
-  },
-  metaRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  timeText: {
-    fontFamily: 'DMSans-Regular',
-    fontSize: 11,
-    color: '#94A3B8',
-  },
-  unreadDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: '#0284C7',
-  },
   cardTitle: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: 14.5,
-    color: colors.navy,
-    marginBottom: 3,
+    fontFamily: 'DMSans-Bold',
+    fontSize: 15,
+    color: '#1F2937',
+    marginBottom: 4,
+    paddingRight: 12,
   },
   unreadTitle: {
-    fontFamily: 'DMSans-Bold',
-    color: '#0B192C',
+    color: '#9A3412',
   },
   cardBody: {
     fontFamily: 'DMSans-Regular',
     fontSize: 13,
-    color: '#64748B',
+    color: '#4B5563',
     lineHeight: 18,
+    marginBottom: 10,
   },
-  bottomActionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  linkAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  linkText: {
-    fontFamily: 'DMSans-Bold',
-    fontSize: 12,
-    color: colors.teal,
-  },
-  markReadBtn: {
+  timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: '#E0F2FE',
   },
-  markReadBtnText: {
+  timeText: {
     fontFamily: 'DMSans-Medium',
-    fontSize: 11,
-    color: '#0284C7',
+    fontSize: 12,
+    color: '#6B7280',
   },
   emptyContainer: {
     flex: 1,
@@ -666,25 +528,19 @@ const styles = StyleSheet.create({
   skeletonCard: {
     flexDirection: 'row',
     borderRadius: 16,
-    padding: 14,
-    backgroundColor: colors.white,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 12,
+    borderColor: '#E5E7EB',
+    gap: 14,
   },
   skeletonIcon: {
     width: 44,
     height: 44,
-    borderRadius: 13,
+    borderRadius: 12,
   },
   skeletonContent: {
     flex: 1,
     justifyContent: 'center',
-  },
-  skeletonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
   },
 });

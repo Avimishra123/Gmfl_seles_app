@@ -62,6 +62,20 @@ export function ApplicationActionCard({
           </View>
           <Chip label="DISBURSED" tone={{ bg: colors.greenSoft, fg: colors.greenText }} />
         </View>
+        <View style={styles.ctaBtnWrap}>
+          <Pressable
+            onPress={onReviewDocs}
+            style={({ pressed }) => [
+              styles.outlineActionBtn,
+              pressed && styles.pressedOpacity,
+            ]}
+          >
+            <FileTextIcon size={14} color={colors.navy} />
+            <Text style={styles.outlineActionBtnText}>
+              View Documents
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   }

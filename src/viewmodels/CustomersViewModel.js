@@ -4,8 +4,6 @@ import { useApp } from '../store';
 
 export const APPLICATION_STATUS_FILTERS = [
   { key: 'ALL', label: 'All' },
-  { key: 'UNDER_REVIEW', label: 'In Review' },
-  { key: 'DOCUMENTS_VERIFIED', label: 'Docs Verified' },
   { key: 'APPROVED', label: 'Approved' },
   { key: 'DISBURSED', label: 'Disbursed' },
   { key: 'REJECTED', label: 'Rejected' },

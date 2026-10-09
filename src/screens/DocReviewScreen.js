@@ -154,6 +154,9 @@ export default function DocReviewScreen({ navigation, route }) {
 
   const { handleApprove, actionLoading: appActionLoading } = useCustomerViewModel(id, isApp);
 
+  const customerStatus = String(customer?.status || '').toUpperCase();
+  const isDisbursed = customerStatus === 'DISBURSED' || customerStatus === 'COMPLETED';
+
   const [items, setItems] = useState(() => (checklist && checklist.length > 0 ? checklist : STATIC_DOCUMENTS));
   const [rejectingDoc, setRejectingDoc] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -300,6 +303,7 @@ export default function DocReviewScreen({ navigation, route }) {
                   onApprove={() => onApproveDoc(doc.code)}
                   onReject={() => setRejectingDoc(doc)}
                   disabled={false}
+                  isDisbursed={isDisbursed}
                 />
               ))
             )}
@@ -323,6 +327,7 @@ export default function DocReviewScreen({ navigation, route }) {
                     onApprove={() => onApproveDoc(doc.code)}
                     onReject={() => setRejectingDoc(doc)}
                     disabled={false}
+                    isDisbursed={isDisbursed}
                   />
                 ))}
               </View>
@@ -330,7 +335,7 @@ export default function DocReviewScreen({ navigation, route }) {
           )}
 
           {/* Bottom Call-To-Action */}
-          {allMandatoryDone ? (
+          {allMandatoryDone && !isDisbursed ? (
             <View style={styles.ctaBox}>
               <View style={styles.ctaHeaderRow}>
                 <CheckCircleIcon size={20} color={colors.greenText} />
@@ -381,6 +386,7 @@ function DocItemRow({
   onApprove,
   onReject,
   disabled,
+  isDisbursed,
 }) {
   const badgeInfo = statusBadge(doc.status, doc.uploadedByRole);
   const norm = String(doc.status || '').toUpperCase();
@@ -429,58 +435,10 @@ function DocItemRow({
       ) : null}
 
       {/* Action Row */}
-      {(isPendingUpload || isRejected || isPendingReview || (isVerified && isUploaded)) && (
+      {(isPendingUpload || isRejected || isPendingReview || (isVerified && isUploaded) || (isDisbursed && isUploaded)) && (
         <View style={styles.actionRow}>
-          {/* If Not Uploaded: Agent can upload directly */}
-          {isPendingUpload && (
-            <Pressable
-              onPress={onUpload}
-              disabled={disabled}
-              style={({ pressed }) => [
-                styles.actionBtn,
-                styles.uploadBtn,
-                pressed && styles.pressedOpacity,
-              ]}
-            >
-              <UploadCloudIcon size={15} color="#C2410C" />
-              <Text style={styles.uploadBtnText}>Upload for Applicant</Text>
-            </Pressable>
-          )}
-
-          {/* If Rejected: Agent can re-upload replacement or review details */}
-          {isRejected && (
-            <View style={styles.decisionBtnRow}>
-              {isUploaded && (
-                <Pressable
-                  onPress={onInspect}
-                  style={({ pressed }) => [
-                    styles.actionBtn,
-                    styles.inspectBtnHalf,
-                    pressed && styles.pressedOpacity,
-                  ]}
-                >
-                  <EyeIcon size={14} color={colors.navy} />
-                  <Text style={styles.inspectBtnText}>Review</Text>
-                </Pressable>
-              )}
-              <Pressable
-                onPress={onUpload}
-                disabled={disabled}
-                style={({ pressed }) => [
-                  styles.actionBtn,
-                  isUploaded ? styles.reuploadBtnHalf : styles.reuploadBtn,
-                  pressed && styles.pressedOpacity,
-                ]}
-              >
-                <RefreshIcon size={14} color={colors.red} />
-                <Text style={styles.reuploadBtnText}>Re-upload Document</Text>
-              </Pressable>
-            </View>
-          )}
-
-          {/* If Pending Review: Two-tier layout for spacious review & decision */}
-          {isPendingReview && (
-            <View style={styles.pendingActionWrap}>
+          {isDisbursed ? (
+            isUploaded && (
               <Pressable
                 onPress={onInspect}
                 style={({ pressed }) => [
@@ -492,49 +450,115 @@ function DocItemRow({
                 <EyeIcon size={15} color={colors.navy} />
                 <Text style={styles.inspectBtnText}>Review Document</Text>
               </Pressable>
-
-              <View style={styles.decisionBtnRow}>
+            )
+          ) : (
+            <>
+              {/* If Not Uploaded: Agent can upload directly */}
+              {isPendingUpload && (
                 <Pressable
-                  onPress={onApprove}
+                  onPress={onUpload}
                   disabled={disabled}
                   style={({ pressed }) => [
                     styles.actionBtn,
-                    styles.quickApproveBtn,
+                    styles.uploadBtn,
                     pressed && styles.pressedOpacity,
                   ]}
                 >
-                  <CheckIcon size={14} color="#15803D" strokeWidth={2.5} />
-                  <Text style={styles.quickApproveText}>Approve</Text>
+                  <UploadCloudIcon size={15} color="#C2410C" />
+                  <Text style={styles.uploadBtnText}>Upload for Applicant</Text>
                 </Pressable>
+              )}
+
+              {/* If Rejected: Agent can re-upload replacement or review details */}
+              {isRejected && (
+                <View style={styles.decisionBtnRow}>
+                  {isUploaded && (
+                    <Pressable
+                      onPress={onInspect}
+                      style={({ pressed }) => [
+                        styles.actionBtn,
+                        styles.inspectBtnHalf,
+                        pressed && styles.pressedOpacity,
+                      ]}
+                    >
+                      <EyeIcon size={14} color={colors.navy} />
+                      <Text style={styles.inspectBtnText}>Review</Text>
+                    </Pressable>
+                  )}
+                  <Pressable
+                    onPress={onUpload}
+                    disabled={disabled}
+                    style={({ pressed }) => [
+                      styles.actionBtn,
+                      isUploaded ? styles.reuploadBtnHalf : styles.reuploadBtn,
+                      pressed && styles.pressedOpacity,
+                    ]}
+                  >
+                    <RefreshIcon size={14} color={colors.red} />
+                    <Text style={styles.reuploadBtnText}>Re-upload Document</Text>
+                  </Pressable>
+                </View>
+              )}
+
+              {/* If Pending Review: Two-tier layout for spacious review & decision */}
+              {isPendingReview && (
+                <View style={styles.pendingActionWrap}>
+                  <Pressable
+                    onPress={onInspect}
+                    style={({ pressed }) => [
+                      styles.actionBtn,
+                      styles.inspectBtnFull,
+                      pressed && styles.pressedOpacity,
+                    ]}
+                  >
+                    <EyeIcon size={15} color={colors.navy} />
+                    <Text style={styles.inspectBtnText}>Review Document</Text>
+                  </Pressable>
+
+                  <View style={styles.decisionBtnRow}>
+                    <Pressable
+                      onPress={onApprove}
+                      disabled={disabled}
+                      style={({ pressed }) => [
+                        styles.actionBtn,
+                        styles.quickApproveBtn,
+                        pressed && styles.pressedOpacity,
+                      ]}
+                    >
+                      <CheckIcon size={14} color="#15803D" strokeWidth={2.5} />
+                      <Text style={styles.quickApproveText}>Approve</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={onReject}
+                      disabled={disabled}
+                      style={({ pressed }) => [
+                        styles.actionBtn,
+                        styles.quickRejectBtn,
+                        pressed && styles.pressedOpacity,
+                      ]}
+                    >
+                      <XIcon size={14} color={colors.red} strokeWidth={2.5} />
+                      <Text style={styles.quickRejectText}>Reject</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+
+              {/* If Verified & Uploaded: Single Review Button */}
+              {isVerified && isUploaded && (
                 <Pressable
-                  onPress={onReject}
-                  disabled={disabled}
+                  onPress={onInspect}
                   style={({ pressed }) => [
                     styles.actionBtn,
-                    styles.quickRejectBtn,
+                    styles.inspectBtnFull,
                     pressed && styles.pressedOpacity,
                   ]}
                 >
-                  <XIcon size={14} color={colors.red} strokeWidth={2.5} />
-                  <Text style={styles.quickRejectText}>Reject</Text>
+                  <EyeIcon size={15} color={colors.navy} />
+                  <Text style={styles.inspectBtnText}>Review Document</Text>
                 </Pressable>
-              </View>
-            </View>
-          )}
-
-          {/* If Verified & Uploaded: Single Review Button */}
-          {isVerified && isUploaded && (
-            <Pressable
-              onPress={onInspect}
-              style={({ pressed }) => [
-                styles.actionBtn,
-                styles.inspectBtnFull,
-                pressed && styles.pressedOpacity,
-              ]}
-            >
-              <EyeIcon size={15} color={colors.navy} />
-              <Text style={styles.inspectBtnText}>Review Document</Text>
-            </Pressable>
+              )}
+            </>
           )}
         </View>
       )}

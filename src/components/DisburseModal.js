@@ -14,14 +14,6 @@ import { DatePickerModal, formatReadableDate, parseDateISO } from './DateInput';
 import { CalendarIcon, CheckCircleIcon } from './Icons';
 import { colors, type } from '../theme';
 
-function calculateEmi(principal, annualRate, tenureMonths) {
-  const p = parseFloat(principal);
-  const r = parseFloat(annualRate) / 100 / 12;
-  const n = parseInt(tenureMonths, 10);
-  if (!p || !r || !n || p <= 0 || r <= 0 || n <= 0) return '';
-  const emi = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-  return Math.round(emi).toString();
-}
 
 function getNextMonthDay(dayOfMonth) {
   const d = new Date();
@@ -42,6 +34,7 @@ function getDaysFromToday(days) {
   return `${y}-${m}-${day}`;
 }
 
+
 export function DisburseModal({ visible, onClose, onConfirm, initialAmount, loading = false }) {
   const [loanAmount, setLoanAmount] = useState('');
   const [interestRate, setInterestRate] = useState('10.5');
@@ -50,6 +43,8 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
   const [firstEmiDate, setFirstEmiDate] = useState(getDaysFromToday(30));
   const [remarks, setRemarks] = useState('Disbursed by salesperson');
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const [lastEmiDate, setLastEmiDate] = useState('');
+  const [lastEmiCalendarVisible, setLastEmiCalendarVisible] = useState(false);
 
   useEffect(() => {
     if (initialAmount) {
@@ -58,13 +53,7 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
     }
   }, [initialAmount]);
 
-  // Recalculate EMI when principal, rate, or tenure change
-  useEffect(() => {
-    const calculated = calculateEmi(loanAmount, interestRate, tenure);
-    if (calculated) {
-      setEmiAmount(calculated);
-    }
-  }, [loanAmount, interestRate, tenure]);
+
 
   function handleConfirm() {
     const p = parseFloat(loanAmount);
@@ -77,10 +66,12 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
     if (!n || n <= 0) return;
     if (!emi || emi <= 0) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(firstEmiDate)) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(lastEmiDate)) return;
 
     onConfirm({
       loanAmount: p,
       firstEmiDate: firstEmiDate.trim(),
+      lastEmiDate: lastEmiDate.trim(),
       interestRate: r,
       totalNumberOfEmi: n,
       emiAmount: emi,
@@ -93,7 +84,8 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
     parseFloat(interestRate) >= 0 &&
     parseInt(tenure, 10) > 0 &&
     parseFloat(emiAmount) > 0 &&
-    /^\d{4}-\d{2}-\d{2}$/.test(firstEmiDate);
+    /^\d{4}-\d{2}-\d{2}$/.test(firstEmiDate) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(lastEmiDate);
 
   return (
     <>
@@ -146,7 +138,7 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
                     value={emiAmount}
                     onChangeText={setEmiAmount}
                     keyboardType="numeric"
-                    placeholder="Calculated EMI"
+                    placeholder="e.g. 15000"
                   />
                 </Field>
 
@@ -174,74 +166,28 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
                 </Field>
               </View>
 
-              {/* Quick EMI Shortcut Pills */}
-              <View style={styles.presetsRow}>
-                <Text style={styles.presetLabel}>Quick Select:</Text>
+
+              <Field label="Last EMI Date">
                 <Pressable
-                  onPress={() => setFirstEmiDate(getNextMonthDay(5))}
-                  style={[
-                    styles.presetPill,
-                    firstEmiDate === getNextMonthDay(5) && styles.presetPillActive,
+                  onPress={() => setLastEmiCalendarVisible(true)}
+                  style={({ pressed }) => [
+                    styles.datePickerBtn,
+                    pressed && styles.pressedOpacity,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.presetPillText,
-                      firstEmiDate === getNextMonthDay(5) && styles.presetPillTextActive,
-                    ]}
-                  >
-                    5th Next Mo
-                  </Text>
+                  <View style={styles.calendarIconCircle}>
+                    <CalendarIcon size={16} color={colors.tealDeep} />
+                  </View>
+                  <View style={styles.dateTextWrap}>
+                    <Text style={styles.dateDisplayText} numberOfLines={1}>
+                      {lastEmiDate
+                        ? formatReadableDate(parseDateISO(lastEmiDate))
+                        : 'Select date'}
+                    </Text>
+                    <Text style={styles.dateIsoSubText}>{lastEmiDate || 'No date selected'}</Text>
+                  </View>
                 </Pressable>
-                <Pressable
-                  onPress={() => setFirstEmiDate(getNextMonthDay(10))}
-                  style={[
-                    styles.presetPill,
-                    firstEmiDate === getNextMonthDay(10) && styles.presetPillActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.presetPillText,
-                      firstEmiDate === getNextMonthDay(10) && styles.presetPillTextActive,
-                    ]}
-                  >
-                    10th Next Mo
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => setFirstEmiDate(getNextMonthDay(1))}
-                  style={[
-                    styles.presetPill,
-                    firstEmiDate === getNextMonthDay(1) && styles.presetPillActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.presetPillText,
-                      firstEmiDate === getNextMonthDay(1) && styles.presetPillTextActive,
-                    ]}
-                  >
-                    1st Next Mo
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => setFirstEmiDate(getDaysFromToday(30))}
-                  style={[
-                    styles.presetPill,
-                    firstEmiDate === getDaysFromToday(30) && styles.presetPillActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.presetPillText,
-                      firstEmiDate === getDaysFromToday(30) && styles.presetPillTextActive,
-                    ]}
-                  >
-                    +30 Days
-                  </Text>
-                </Pressable>
-              </View>
+              </Field>
 
               <Field label="Remarks (Optional)">
                 <Input
@@ -283,6 +229,17 @@ export function DisburseModal({ visible, onClose, onConfirm, initialAmount, load
           setCalendarVisible(false);
         }}
         onClose={() => setCalendarVisible(false)}
+      />
+
+      <DatePickerModal
+        visible={lastEmiCalendarVisible}
+        value={lastEmiDate || getDaysFromToday(30)}
+        label="Select Last EMI Date"
+        onConfirm={(d) => {
+          setLastEmiDate(d);
+          setLastEmiCalendarVisible(false);
+        }}
+        onClose={() => setLastEmiCalendarVisible(false)}
       />
     </>
   );
@@ -355,40 +312,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans-Medium',
     fontSize: 10,
     color: colors.muted,
-  },
-  presetsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: -4,
-    marginBottom: 12,
-    flexWrap: 'wrap',
-  },
-  presetLabel: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: 11,
-    color: colors.muted,
-    marginRight: 2,
-  },
-  presetPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  presetPillActive: {
-    backgroundColor: '#E0F2FE',
-    borderColor: '#0284C7',
-  },
-  presetPillText: {
-    fontFamily: 'DMSans-Bold',
-    fontSize: 11,
-    color: colors.navy,
-  },
-  presetPillTextActive: {
-    color: '#0284C7',
   },
   btnRow: {
     flexDirection: 'row',

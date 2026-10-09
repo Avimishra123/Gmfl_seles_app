@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "SystemNavigationBarSpec_autolinked_build",
+		"source" : "/Users/abhishekmishra/Gmfl_seles_app/Gmfl_seles_app/node_modules/react-native-system-navigation-bar/android/build/generated/source/codegen/jni"
+	}
+}

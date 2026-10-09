@@ -37,6 +37,9 @@ export default function DocDecideScreen({ navigation, route }) {
   const { customer: apiCustomer } = useCustomerViewModel(id, isApp);
   const customer = apiCustomer || mockCustomer;
 
+  const customerStatus = String(customer?.status || '').toUpperCase();
+  const isDisbursed = customerStatus === 'DISBURSED' || customerStatus === 'COMPLETED';
+
   const {
     checklist,
     loading,
@@ -305,21 +308,23 @@ export default function DocDecideScreen({ navigation, route }) {
               <Text style={styles.emptySubtitle}>
                 The applicant has not yet provided this document. You can upload it on their behalf.
               </Text>
-              <View style={styles.spacer14}>
-                <Btn
-                  label="Upload for Applicant"
-                  variant="primary"
-                  onPress={() =>
-                    navigation.navigate('AgentUpload', {
-                      id,
-                      docCode: doc.code,
-                      index: String(index),
-                      back: 'DocDecide',
-                      isApp,
-                    })
-                  }
-                />
-              </View>
+              {!isDisbursed && (
+                <View style={styles.spacer14}>
+                  <Btn
+                    label="Upload for Applicant"
+                    variant="primary"
+                    onPress={() =>
+                      navigation.navigate('AgentUpload', {
+                        id,
+                        docCode: doc.code,
+                        index: String(index),
+                        back: 'DocDecide',
+                        isApp,
+                      })
+                    }
+                  />
+                </View>
+              )}
             </View>
           )}
 
@@ -369,7 +374,7 @@ export default function DocDecideScreen({ navigation, route }) {
                   </Text>
                 </View>
 
-                {fileUrl ? (
+                {fileUrl && !isDisbursed ? (
                   <View style={styles.spacer10}>
                     <Btn
                       label="Replace / Re-upload File"
@@ -391,7 +396,7 @@ export default function DocDecideScreen({ navigation, route }) {
             )}
 
             {/* Case 2: Rejected Document - Only allow re-uploading replacement */}
-            {isRejected && (
+            {isRejected && !isDisbursed && (
               <View>
                 <Btn
                   label="Re-upload Replacement Document"
@@ -411,7 +416,7 @@ export default function DocDecideScreen({ navigation, route }) {
             )}
 
             {/* Case 3: Pending Review - Has uploaded file, awaiting agent decision */}
-            {isPendingReview && (
+            {isPendingReview && !isDisbursed && (
               <View>
                 <View style={styles.btnRow}>
                   <Btn

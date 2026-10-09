@@ -1,4 +1,4 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -23,17 +23,36 @@ import { colors } from './src/theme';
 
 import { useEffect } from 'react';
 import { PermissionsAndroid, Platform, NativeModules } from 'react-native';
-import { getMessaging, getToken, onMessage, requestPermission } from '@react-native-firebase/messaging';
+import { getMessaging, getToken, onMessage, requestPermission, onNotificationOpenedApp } from '@react-native-firebase/messaging';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { ApiService } from './src/network/ApiService';
 
 const Stack = createNativeStackNavigator();
 
+function handleNotificationNavigation(remoteMessage, navigation) {
+  if (!remoteMessage || !remoteMessage.data) return;
+  const data = remoteMessage.data;
+  
+  if (data.leadId) {
+    navigation.navigate('Customer', {
+      id: data.leadId,
+      isApp: data.applicationId && data.applicationId !== 'false' && data.applicationId !== '' ? true : false,
+    });
+  } else if (data.applicationId) {
+    navigation.navigate('Customer', {
+      id: data.applicationId,
+      isApp: true,
+    });
+  }
+}
+
 function Root() {
   const { toast, token, showToast } = useApp();
+  const navigation = useNavigation();
 
   useEffect(() => {
-    let unsubscribe;
+    let unsubscribeMessage;
+    let unsubscribeOpen;
     async function setupFirebase() {
       console.log('🔥 SETUP FIREBASE STARTED');
       try {
@@ -77,7 +96,24 @@ function Root() {
 
     try {
       const messaging = getMessaging();
-      unsubscribe = onMessage(messaging, async remoteMessage => {
+      
+      // Handle Background Notification Clicks
+      unsubscribeOpen = onNotificationOpenedApp(messaging, remoteMessage => {
+        console.log('🔥 Background click:', remoteMessage);
+        handleNotificationNavigation(remoteMessage, navigation);
+      });
+
+      // Handle Quit State Notification Clicks
+      messaging.getInitialNotification().then(remoteMessage => {
+        if (remoteMessage) {
+          console.log('🔥 Quit state click:', remoteMessage);
+          setTimeout(() => {
+            handleNotificationNavigation(remoteMessage, navigation);
+          }, 1000); // short delay to ensure root layout is ready
+        }
+      });
+
+      unsubscribeMessage = onMessage(messaging, async remoteMessage => {
         console.log('🔥 FOREGROUND MESSAGE:', remoteMessage);
         const title =
           remoteMessage.notification?.title ||
@@ -102,7 +138,8 @@ function Root() {
     }
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribeMessage) unsubscribeMessage();
+      if (unsubscribeOpen) unsubscribeOpen();
     };
   }, [token]);
 
